@@ -24,6 +24,7 @@ class ShaderNativeTray {
     }
 
     this.refreshBackground();
+    this.initializeTray();
   }
 
   decreaseOpacity() {
@@ -34,6 +35,7 @@ class ShaderNativeTray {
     }
 
     this.refreshBackground();
+    this.initializeTray();
   }
 
   setOpacity(value) {
@@ -101,13 +103,13 @@ class ShaderNativeTray {
         label: 'Increase Opacity',
         accelerator: 'Alt+Cmd+.',
         click: () => this.increaseOpacity(),
-        enabled: this.enabled
+        enabled: this.enabled && this.opacity <= 0.8,
       },
       {
         label: 'Decrease Opacity',
         accelerator: 'Alt+Cmd+,',
         click: () => this.decreaseOpacity(),
-        enabled: this.enabled
+        enabled: this.enabled && this.opacity >= 0.2,
       },
 
       { type: 'separator' },

@@ -1,9 +1,14 @@
 # MacOS Menu Bar Shade App
 
+The minimum screen brightness level was sometimes still to bright to me, usually when reading or watching at night. I decided to build something that would allow me to dim the screen even more. I used to read about Swift basics few years ago but with a JavaScript, a language that I am using daily while coding. 
+
 ## Electron app with native Menu class
 
+**[Video Preview](/resources/v1.mov)**
+
+- Used empty BrowserWindow with black opaque background (`rgba()`). It works well across multiple workspaces but is rendered as separate app when opening a mission control.
 - Native Menu does not allow custom content. I had to give up the slider input component in favor of increase/decrease menu items which was still bad because the menu was collapsing after every click. Adding 5 more to control opacity level was a UX rescue. I used 10%, 25%, 50%, 75%, and 90% values.
-- Shortcuts work only when the status menu is opened menu. It is not acceptable because setting opacity to 90% could make it difficult to turn off. It seems that the `acceleratorWorksWhenHidden` MenuItem option is not working as expected for tray-only applications. 
+- Shortcuts work only when the status bar menu is opened. It is not acceptable because setting opacity to 90% could make it difficult to turn off. It seems that the `acceleratorWorksWhenHidden` MenuItem option is not working as expected for tray-only applications. 
 
 ### Electron DMG Sizes with different formats
 
