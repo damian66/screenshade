@@ -14,15 +14,26 @@ class ShaderNativeTray {
     { key: 'SET_OPACITY_2', accelerator: 'Ctrl+Cmd+2', handler: () => this.setOpacity(0.25) },
     { key: 'SET_OPACITY_3', accelerator: 'Ctrl+Cmd+3', handler: () => this.setOpacity(0.5) },
     { key: 'SET_OPACITY_4', accelerator: 'Ctrl+Cmd+4', handler: () => this.setOpacity(0.75) },
-    { key: 'SET_OPACITY_5', accelerator: 'Ctrl+Cmd+5', handler: () => this.setOpacity(0.9) },
+    { key: 'SET_OPACITY_5', accelerator: 'Ctrl+Cmd+5', handler: () => this.setOpacity(0.85) },
     { key: 'SET_OPACITY_0', accelerator: 'Ctrl+Cmd+0', handler: () => this.enabled && this.toggle() },
   ];
 
   getIcon(name) {
     return nativeImage.createFromPath(path.join(__dirname, "assets", name));
   }
+  
+  getTrayIcon() {
+    if (this.opacity < 0.1 || !this.enabled) return this.getIcon('sunny-snowing-Template.png');
+    else if (this.opacity >= 0.85) return this.getIcon('brightness-5-Template.png');
+    else if (this.opacity >= 0.75) return this.getIcon('brightness-4-Template.png');
+    else if (this.opacity >= 0.5) return this.getIcon('brightness-3-Template.png');
+    else if (this.opacity >= 0.25) return this.getIcon('brightness-2-Template.png');
+    else if (this.opacity >= 0.1) return this.getIcon('brightness-1-Template.png');
+    else return this.getIcon('brightness-1-Template.png');
+  }
 
   constructor() {
+    // this.tray = new Tray(this.getIcon('tray-Template.png'));
     this.tray = new Tray(this.getIcon('tray-Template.png'));
 
     this.initializeShade();
@@ -51,10 +62,10 @@ class ShaderNativeTray {
   }
 
   increaseOpacity() {
-    if (this.opacity <= 0.8) {
+    if (this.opacity <= 0.7) {
       this.opacity += 0.1;
     } else {
-      this.opacity = 0.9;
+      this.opacity = 0.8;
     }
 
     this.refreshBackground();
@@ -110,9 +121,12 @@ class ShaderNativeTray {
   }
 
   initializeTray() {
+    this.tray.setImage(this.getTrayIcon());
+
     const menuTemplate = [
       {
-        label: this.enabled ? 'Disable' : 'Enable',
+        // label: this.enabled ? 'Disable' : 'Enable',
+        label: 'Enable',
         checked: this.enabled,
         type: 'checkbox',
         accelerator: this.getShortcutAccelerator('TOGGLE'),
@@ -138,12 +152,12 @@ class ShaderNativeTray {
       { type: 'separator' },
 
       {
-        label: '90%',
-        click: () => this.setOpacity(0.90),
+        label: '85%',
+        click: () => this.setOpacity(0.85),
         type: 'checkbox',
         icon: this.getIcon('brightness-5-Template.png'),
         accelerator: this.getShortcutAccelerator('SET_OPACITY_5'),
-        checked: this.enabled && this.opacity === 0.90,
+        checked: this.enabled && this.opacity === 0.85,
       },
       {
         label: '75%',
