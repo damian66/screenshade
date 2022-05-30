@@ -34,8 +34,8 @@
           "name": "@electron-forge/publisher-github",
           "config": {
             "repository": {
-              "owner": "me",
-              "name": "awesome-thing"
+              "owner": "damian66",
+              "name": "screenshade"
             }
           }
         }
@@ -45,6 +45,7 @@
   "devDependencies": {
     "@electron-forge/cli": "^6.0.0-beta.63",
     "@electron-forge/maker-dmg": "^6.0.0-beta.63",
+    "@electron-forge/publisher-github": "^6.0.0-beta.63",
     "@types/node": "^17.0.36",
     "electron": "19.0.1"
   },
