@@ -1,19 +1,53 @@
-const { app, Menu, MenuItem, Tray, BrowserWindow } = require('electron');
+const { app, Menu, MenuItem, Tray, BrowserWindow, globalShortcut, nativeImage } = require('electron');
+const path = require('path');
 const osxBrightness = require('osx-brightness');
 
 class ShaderNativeTray {
   enabled = false;
   opacity = 0.5;
 
+  shortcuts = [
+    { key: 'TOGGLE', accelerator: 'Ctrl+Cmd+S', handler: () => this.toggle() },
+    { key: 'INCREASE_OPACITY', accelerator: 'Ctrl+Cmd+.', handler: () => this.increaseOpacity() },
+    { key: 'DECREASE_OPACITY', accelerator: 'Ctrl+Cmd+,', handler: () => this.decreaseOpacity() },
+    { key: 'SET_OPACITY_1', accelerator: 'Ctrl+Cmd+1', handler: () => this.setOpacity(0.1) },
+    { key: 'SET_OPACITY_2', accelerator: 'Ctrl+Cmd+2', handler: () => this.setOpacity(0.25) },
+    { key: 'SET_OPACITY_3', accelerator: 'Ctrl+Cmd+3', handler: () => this.setOpacity(0.5) },
+    { key: 'SET_OPACITY_4', accelerator: 'Ctrl+Cmd+4', handler: () => this.setOpacity(0.75) },
+    { key: 'SET_OPACITY_5', accelerator: 'Ctrl+Cmd+5', handler: () => this.setOpacity(0.9) },
+    { key: 'SET_OPACITY_0', accelerator: 'Ctrl+Cmd+0', handler: () => this.enabled && this.toggle() },
+  ];
+
+  getIcon(name) {
+    return nativeImage.createFromPath(path.join(__dirname, "assets", name));
+  }
+
   constructor() {
-    this.tray = new Tray('./src/assets/tray-Template.png');
+    this.tray = new Tray(this.getIcon('tray-Template.png'));
 
     this.initializeShade();
     this.initializeTray();
+    this.registerShortcuts();
   }
 
   getShadeBackgroundColor() {
     return `rgba(0, 0, 0, ${this.opacity})`;
+  }
+
+  getShortcutAccelerator(key) {
+    return this.shortcuts.find(shortcut => shortcut.key === key)?.accelerator;
+  }
+
+  toggle() {
+    if (this.enabled) {
+      this.shade.hide();
+      this.enabled = false;
+    } else {
+      this.shade.show();
+      this.enabled = true;
+    }
+
+    this.initializeTray();
   }
 
   increaseOpacity() {
@@ -51,18 +85,6 @@ class ShaderNativeTray {
   refreshBackground() {
     this.shade.setBackgroundColor(this.getShadeBackgroundColor());
   }
-  
-  toggle() {
-    if (this.enabled) {
-      this.shade.hide();
-      this.enabled = false;
-    } else {
-      this.shade.show();
-      this.enabled = true;
-    }
-
-    this.initializeTray();
-  }
 
   initializeShade() {
     this.shade = new BrowserWindow({
@@ -93,7 +115,8 @@ class ShaderNativeTray {
         label: this.enabled ? 'Disable' : 'Enable',
         checked: this.enabled,
         type: 'checkbox',
-        icon: './src/assets/sunny-snowing-Template.png',
+        accelerator: this.getShortcutAccelerator('TOGGLE'),
+        icon: this.getIcon('sunny-snowing-Template.png'),
         click: () => this.toggle()
       },
 
@@ -101,13 +124,13 @@ class ShaderNativeTray {
 
       {
         label: 'Increase Opacity',
-        accelerator: 'Alt+Cmd+.',
+        accelerator: this.getShortcutAccelerator('INCREASE_OPACITY'),
         click: () => this.increaseOpacity(),
         enabled: this.enabled && this.opacity <= 0.8,
       },
       {
         label: 'Decrease Opacity',
-        accelerator: 'Alt+Cmd+,',
+        accelerator: this.getShortcutAccelerator('DECREASE_OPACITY'),
         click: () => this.decreaseOpacity(),
         enabled: this.enabled && this.opacity >= 0.2,
       },
@@ -118,43 +141,46 @@ class ShaderNativeTray {
         label: '90%',
         click: () => this.setOpacity(0.90),
         type: 'checkbox',
-        icon: './src/assets/brightness-5-Template.png',
+        icon: this.getIcon('brightness-5-Template.png'),
+        accelerator: this.getShortcutAccelerator('SET_OPACITY_5'),
         checked: this.enabled && this.opacity === 0.90,
       },
       {
         label: '75%',
         click: () => this.setOpacity(0.75),
         type: 'checkbox',
-        icon: './src/assets/brightness-4-Template.png',
+        icon: this.getIcon('brightness-4-Template.png'),
+        accelerator: this.getShortcutAccelerator('SET_OPACITY_4'),
         checked: this.enabled && this.opacity === 0.75,
       },
       {
         label: '50%',
         click: () => this.setOpacity(0.5),
         type: 'checkbox',
-        icon: './src/assets/brightness-3-Template.png',
+        icon: this.getIcon('brightness-3-Template.png'),
+        accelerator: this.getShortcutAccelerator('SET_OPACITY_3'),
         checked: this.enabled && this.opacity === 0.5,
       },
       {
         label: '25%',
         click: () => this.setOpacity(0.25),
         type: 'checkbox',
-        icon: './src/assets/brightness-2-Template.png',
+        icon: this.getIcon('brightness-2-Template.png'),
+        accelerator: this.getShortcutAccelerator('SET_OPACITY_2'),
         checked: this.enabled && this.opacity === 0.25,
       },
       {
         label: '10%',
         click: () => this.setOpacity(0.1),
         type: 'checkbox',
-        icon: './src/assets/brightness-1-Template.png',
+        icon: this.getIcon('brightness-1-Template.png'),
+        accelerator: this.getShortcutAccelerator('SET_OPACITY_1'),
         checked: this.enabled && this.opacity === 0.1,
       },
 
       { type: 'separator' },
 
       {
-        label: 'Quit',
-        accelerator: 'Alt+Cmd+I',
         role: 'quit',
         click: () => {
           app.quit();
@@ -165,6 +191,13 @@ class ShaderNativeTray {
     const trayMenu = Menu.buildFromTemplate(menuTemplate);
 
     this.tray.setContextMenu(trayMenu);
+  }
+
+  registerShortcuts() {
+    this.shortcuts.forEach(shortcut => {
+      const command = typeof shortcut.accelerator === 'string' ? 'register' : 'registerAll';
+      globalShortcut[command](shortcut.accelerator, shortcut.handler);
+    });
   }
 }
 
