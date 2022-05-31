@@ -1,5 +1,9 @@
+### Draft
+
+- Toggle percentage label.
+
 ### 1.0.1
-> Draft
+> 31 May 2022
 
 - Custom tray icons based on the opacity level.
 

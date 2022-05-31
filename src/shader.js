@@ -6,6 +6,9 @@ class ShaderNativeTray {
   enabled = false;
   opacity = 0.5;
 
+  // TODO Save settings
+  showPercentage = false;
+
   shortcuts = [
     { key: 'TOGGLE', accelerator: 'Ctrl+Cmd+S', handler: () => this.toggle() },
     { key: 'INCREASE_OPACITY', accelerator: 'Ctrl+Cmd+.', handler: () => this.increaseOpacity() },
@@ -123,6 +126,13 @@ class ShaderNativeTray {
   initializeTray() {
     this.tray.setImage(this.getTrayIcon());
 
+    if (this.showPercentage) {
+      const title = this.enabled ? Math.floor(this.opacity * 100) : 0;
+      this.tray.setTitle(`${title}%`, { fontType: 'monospacedDigit' });
+    } else {
+      this.tray.setTitle('');
+    }
+
     const menuTemplate = [
       {
         // label: this.enabled ? 'Disable' : 'Enable',
@@ -190,6 +200,18 @@ class ShaderNativeTray {
         icon: this.getIcon('brightness-1-Template.png'),
         accelerator: this.getShortcutAccelerator('SET_OPACITY_1'),
         checked: this.enabled && this.opacity === 0.1,
+      },
+
+      { type: 'separator' },
+      
+      {
+        label: 'Show percentage',
+        click: () => {
+          this.showPercentage = !this.showPercentage;
+          this.initializeTray();
+        },
+        type: 'checkbox',
+        checked: this.showPercentage,
       },
 
       { type: 'separator' },
