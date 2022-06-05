@@ -9,29 +9,38 @@ class ShaderNativeTray {
   // TODO Save settings
   showPercentage = false;
 
+  // Opacity predefined levels
+  levels = [0.2, 0.35, 0.5, 0.65, 0.8];
+  // Increase/decrease opacity step
+  step = 0.1;
+
   shortcuts = [
     { key: 'TOGGLE', accelerator: 'Ctrl+Cmd+S', handler: () => this.toggle() },
     { key: 'INCREASE_OPACITY', accelerator: 'Ctrl+Cmd+.', handler: () => this.increaseOpacity() },
     { key: 'DECREASE_OPACITY', accelerator: 'Ctrl+Cmd+,', handler: () => this.decreaseOpacity() },
-    { key: 'SET_OPACITY_1', accelerator: 'Ctrl+Cmd+1', handler: () => this.show(0.1) },
-    { key: 'SET_OPACITY_2', accelerator: 'Ctrl+Cmd+2', handler: () => this.show(0.25) },
-    { key: 'SET_OPACITY_3', accelerator: 'Ctrl+Cmd+3', handler: () => this.show(0.5) },
-    { key: 'SET_OPACITY_4', accelerator: 'Ctrl+Cmd+4', handler: () => this.show(0.75) },
-    { key: 'SET_OPACITY_5', accelerator: 'Ctrl+Cmd+5', handler: () => this.show(0.85) },
+    { key: 'SET_OPACITY_1', accelerator: 'Ctrl+Cmd+1', handler: () => this.show(this.levels[0]) },
+    { key: 'SET_OPACITY_2', accelerator: 'Ctrl+Cmd+2', handler: () => this.show(this.levels[1]) },
+    { key: 'SET_OPACITY_3', accelerator: 'Ctrl+Cmd+3', handler: () => this.show(this.levels[2]) },
+    { key: 'SET_OPACITY_4', accelerator: 'Ctrl+Cmd+4', handler: () => this.show(this.levels[3]) },
+    { key: 'SET_OPACITY_5', accelerator: 'Ctrl+Cmd+5', handler: () => this.show(this.levels[4]) },
     { key: 'SET_OPACITY_0', accelerator: 'Ctrl+Cmd+0', handler: () => this.enabled && this.toggle() },
   ];
 
   getIcon(name) {
     return nativeImage.createFromPath(path.join(__dirname, "assets", name));
   }
+
+  getOpacityLabel(amount) {
+    return `${amount * 100}%`;
+  }
   
   getTrayIcon() {
-    if (this.opacity < 0.1 || !this.enabled) return this.getIcon('sunny-snowing-Template.png');
-    else if (this.opacity >= 0.85) return this.getIcon('brightness-5-Template.png');
-    else if (this.opacity >= 0.75) return this.getIcon('brightness-4-Template.png');
-    else if (this.opacity >= 0.5) return this.getIcon('brightness-3-Template.png');
-    else if (this.opacity >= 0.25) return this.getIcon('brightness-2-Template.png');
-    else if (this.opacity >= 0.1) return this.getIcon('brightness-1-Template.png');
+    if (this.opacity < this.levels[0] || !this.enabled) return this.getIcon('sunny-snowing-Template.png');
+    else if (this.opacity >= this.levels[4]) return this.getIcon('brightness-5-Template.png');
+    else if (this.opacity >= this.levels[3]) return this.getIcon('brightness-4-Template.png');
+    else if (this.opacity >= this.levels[2]) return this.getIcon('brightness-3-Template.png');
+    else if (this.opacity >= this.levels[1]) return this.getIcon('brightness-2-Template.png');
+    else if (this.opacity >= this.levels[0]) return this.getIcon('brightness-1-Template.png');
     else return this.getIcon('brightness-1-Template.png');
   }
 
@@ -65,10 +74,14 @@ class ShaderNativeTray {
   }
 
   increaseOpacity() {
-    if (this.opacity <= 0.7) {
-      this.opacity += 0.1;
+    const lastOpacityLevel = this.levels[this.levels.length - 1];
+
+    if (this.opacity <= lastOpacityLevel - this.step) {
+      // Handling the JavaScript floating point precision issue
+      // 0.35 + 0.1 results with 0.44
+      this.opacity = ((this.opacity * 100) + (this.step * 100)) / 100;
     } else {
-      this.opacity = 0.8;
+      this.opacity = lastOpacityLevel;
     }
 
     this.refreshBackground();
@@ -76,10 +89,11 @@ class ShaderNativeTray {
   }
 
   decreaseOpacity() {
-    if (this.opacity >= 0.2) {
-      this.opacity -= 0.1;
+    if (this.opacity >= this.levels[0] + this.step) {
+      // See increaseOpacity method
+      this.opacity = ((this.opacity * 100) - (this.step * 100)) / 100;
     } else {
-      this.opacity = 0.1;
+      this.opacity = this.levels[0];
     }
 
     this.refreshBackground();
@@ -150,56 +164,56 @@ class ShaderNativeTray {
         label: 'Increase Opacity',
         accelerator: this.getShortcutAccelerator('INCREASE_OPACITY'),
         click: () => this.increaseOpacity(),
-        enabled: this.enabled && this.opacity <= 0.8,
+        enabled: this.enabled && this.opacity <= this.levels[this.levels.length - 1] - this.step,
       },
       {
         label: 'Decrease Opacity',
         accelerator: this.getShortcutAccelerator('DECREASE_OPACITY'),
         click: () => this.decreaseOpacity(),
-        enabled: this.enabled && this.opacity >= 0.2,
+        enabled: this.enabled && this.opacity >= this.levels[0] + this.step, // TODO Use custom levels
       },
 
       { type: 'separator' },
 
       {
-        label: '85%',
-        click: () => this.show(0.85),
+        label: this.getOpacityLabel(this.levels[4]),
+        click: () => this.show(this.levels[4]),
         type: 'checkbox',
         icon: this.getIcon('brightness-5-Template.png'),
         accelerator: this.getShortcutAccelerator('SET_OPACITY_5'),
-        checked: this.enabled && this.opacity === 0.85,
+        checked: this.enabled && this.opacity === this.levels[4],
       },
       {
-        label: '75%',
-        click: () => this.show(0.75),
+        label: this.getOpacityLabel(this.levels[3]),
+        click: () => this.show(this.levels[3]),
         type: 'checkbox',
         icon: this.getIcon('brightness-4-Template.png'),
         accelerator: this.getShortcutAccelerator('SET_OPACITY_4'),
-        checked: this.enabled && this.opacity === 0.75,
+        checked: this.enabled && this.opacity === this.levels[3],
       },
       {
-        label: '50%',
-        click: () => this.show(0.5),
+        label: this.getOpacityLabel(this.levels[2]),
+        click: () => this.show(this.levels[2]),
         type: 'checkbox',
         icon: this.getIcon('brightness-3-Template.png'),
         accelerator: this.getShortcutAccelerator('SET_OPACITY_3'),
-        checked: this.enabled && this.opacity === 0.5,
+        checked: this.enabled && this.opacity === this.levels[2],
       },
       {
-        label: '25%',
-        click: () => this.show(0.25),
+        label: this.getOpacityLabel(this.levels[1]),
+        click: () => this.show(this.levels[1]),
         type: 'checkbox',
         icon: this.getIcon('brightness-2-Template.png'),
         accelerator: this.getShortcutAccelerator('SET_OPACITY_2'),
-        checked: this.enabled && this.opacity === 0.25,
+        checked: this.enabled && this.opacity === this.levels[1],
       },
       {
-        label: '10%',
-        click: () => this.show(0.1),
+        label: this.getOpacityLabel(this.levels[0]),
+        click: () => this.show(this.levels[0]),
         type: 'checkbox',
         icon: this.getIcon('brightness-1-Template.png'),
         accelerator: this.getShortcutAccelerator('SET_OPACITY_1'),
-        checked: this.enabled && this.opacity === 0.1,
+        checked: this.enabled && this.opacity === this.levels[0],
       },
 
       { type: 'separator' },
