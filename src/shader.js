@@ -1,6 +1,11 @@
-const { app, Menu, MenuItem, Tray, BrowserWindow, globalShortcut, nativeImage } = require('electron');
-const path = require('path');
+const {
+  app, Menu, MenuItem,
+  Tray, BrowserWindow, globalShortcut,
+  nativeImage,
+} = require('electron');
 const osxBrightness = require('osx-brightness');
+const Store = require('electron-store');
+const path = require('path');
 
 class ShaderNativeTray {
   enabled = false;
@@ -14,6 +19,8 @@ class ShaderNativeTray {
   // Increase/decrease opacity step
   step = 0.1;
 
+  store = null;
+
   shortcuts = [
     { key: 'TOGGLE', accelerator: 'Ctrl+Cmd+S', handler: () => this.toggle() },
     { key: 'INCREASE_OPACITY', accelerator: 'Ctrl+Cmd+.', handler: () => this.increaseOpacity() },
@@ -25,15 +32,29 @@ class ShaderNativeTray {
     { key: 'SET_OPACITY_5', accelerator: 'Ctrl+Cmd+5', handler: () => this.show(this.levels[4]) },
     { key: 'SET_OPACITY_0', accelerator: 'Ctrl+Cmd+0', handler: () => this.enabled && this.toggle() },
   ];
+  
+  constructor() {
+    this.tray = new Tray(this.getIcon('tray-Template.png'));
 
+    this.store = new Store();
+    this.showPercentage = this.store.get('showPercentage');
+
+    this.initializeShade();
+    this.initializeTray();
+    this.registerShortcuts();
+  }
+
+  // Get icon path by file name
   getIcon(name) {
     return nativeImage.createFromPath(path.join(__dirname, "assets", name));
   }
 
+  // Get opacity percentage label
   getOpacityLabel(amount) {
     return `${amount * 100}%`;
   }
-  
+
+  // Get tray icon for the current opacity level
   getTrayIcon() {
     if (this.opacity < this.levels[0] || !this.enabled) return this.getIcon('sunny-snowing-Template.png');
     else if (this.opacity >= this.levels[4]) return this.getIcon('brightness-5-Template.png');
@@ -44,23 +65,17 @@ class ShaderNativeTray {
     else return this.getIcon('brightness-1-Template.png');
   }
 
-  constructor() {
-    // this.tray = new Tray(this.getIcon('tray-Template.png'));
-    this.tray = new Tray(this.getIcon('tray-Template.png'));
-
-    this.initializeShade();
-    this.initializeTray();
-    this.registerShortcuts();
-  }
-
+  // Return shade background color with opacity in rgba() format
   getShadeBackgroundColor() {
     return `rgba(0, 0, 0, ${this.opacity})`;
   }
 
+  // Get shortcut accelerator by key
   getShortcutAccelerator(key) {
     return this.shortcuts.find(shortcut => shortcut.key === key)?.accelerator;
   }
 
+  // Enable or disable shade while keeping last opacity level
   toggle() {
     if (this.enabled) {
       this.shade.hide();
@@ -73,6 +88,7 @@ class ShaderNativeTray {
     this.initializeTray();
   }
 
+  // Increase opacity by a defined step
   increaseOpacity() {
     const lastOpacityLevel = this.levels[this.levels.length - 1];
 
@@ -88,6 +104,7 @@ class ShaderNativeTray {
     this.initializeTray();
   }
 
+  // Decrease opacity by a defined step
   decreaseOpacity() {
     if (this.opacity >= this.levels[0] + this.step) {
       // See increaseOpacity method
@@ -100,6 +117,7 @@ class ShaderNativeTray {
     this.initializeTray();
   }
 
+  // Show shade with a given opacity
   show(value) {
     this.opacity = value || this.opacity;
     this.refreshBackground();
@@ -110,6 +128,7 @@ class ShaderNativeTray {
     this.initializeTray();
   }
 
+  // Update shade background color
   refreshBackground() {
     this.shade.setBackgroundColor(this.getShadeBackgroundColor());
   }
@@ -137,6 +156,7 @@ class ShaderNativeTray {
     this.shade.setSimpleFullScreen(true);
   }
 
+  /// Initialize tray icon
   initializeTray() {
     this.tray.setImage(this.getTrayIcon());
 
@@ -222,6 +242,7 @@ class ShaderNativeTray {
         label: 'Show percentage',
         click: () => {
           this.showPercentage = !this.showPercentage;
+          this.store.set('showPercentage', this.showPercentage);
           this.initializeTray();
         },
         type: 'checkbox',
