@@ -13,11 +13,11 @@ class ShaderNativeTray {
     { key: 'TOGGLE', accelerator: 'Ctrl+Cmd+S', handler: () => this.toggle() },
     { key: 'INCREASE_OPACITY', accelerator: 'Ctrl+Cmd+.', handler: () => this.increaseOpacity() },
     { key: 'DECREASE_OPACITY', accelerator: 'Ctrl+Cmd+,', handler: () => this.decreaseOpacity() },
-    { key: 'SET_OPACITY_1', accelerator: 'Ctrl+Cmd+1', handler: () => this.setOpacity(0.1) },
-    { key: 'SET_OPACITY_2', accelerator: 'Ctrl+Cmd+2', handler: () => this.setOpacity(0.25) },
-    { key: 'SET_OPACITY_3', accelerator: 'Ctrl+Cmd+3', handler: () => this.setOpacity(0.5) },
-    { key: 'SET_OPACITY_4', accelerator: 'Ctrl+Cmd+4', handler: () => this.setOpacity(0.75) },
-    { key: 'SET_OPACITY_5', accelerator: 'Ctrl+Cmd+5', handler: () => this.setOpacity(0.85) },
+    { key: 'SET_OPACITY_1', accelerator: 'Ctrl+Cmd+1', handler: () => this.show(0.1) },
+    { key: 'SET_OPACITY_2', accelerator: 'Ctrl+Cmd+2', handler: () => this.show(0.25) },
+    { key: 'SET_OPACITY_3', accelerator: 'Ctrl+Cmd+3', handler: () => this.show(0.5) },
+    { key: 'SET_OPACITY_4', accelerator: 'Ctrl+Cmd+4', handler: () => this.show(0.75) },
+    { key: 'SET_OPACITY_5', accelerator: 'Ctrl+Cmd+5', handler: () => this.show(0.85) },
     { key: 'SET_OPACITY_0', accelerator: 'Ctrl+Cmd+0', handler: () => this.enabled && this.toggle() },
   ];
 
@@ -57,8 +57,8 @@ class ShaderNativeTray {
       this.shade.hide();
       this.enabled = false;
     } else {
-      this.shade.show();
-      this.enabled = true;
+
+      this.show(this.opacity);
     }
 
     this.initializeTray();
@@ -86,11 +86,11 @@ class ShaderNativeTray {
     this.initializeTray();
   }
 
-  setOpacity(value) {
-    this.opacity = value;
+  show(value) {
+    this.opacity = value || this.opacity;
     this.refreshBackground();
 
-    this.shade.show();
+    this.shade.showInactive();
     this.enabled = true;
 
     this.initializeTray();
@@ -163,7 +163,7 @@ class ShaderNativeTray {
 
       {
         label: '85%',
-        click: () => this.setOpacity(0.85),
+        click: () => this.show(0.85),
         type: 'checkbox',
         icon: this.getIcon('brightness-5-Template.png'),
         accelerator: this.getShortcutAccelerator('SET_OPACITY_5'),
@@ -171,7 +171,7 @@ class ShaderNativeTray {
       },
       {
         label: '75%',
-        click: () => this.setOpacity(0.75),
+        click: () => this.show(0.75),
         type: 'checkbox',
         icon: this.getIcon('brightness-4-Template.png'),
         accelerator: this.getShortcutAccelerator('SET_OPACITY_4'),
@@ -179,7 +179,7 @@ class ShaderNativeTray {
       },
       {
         label: '50%',
-        click: () => this.setOpacity(0.5),
+        click: () => this.show(0.5),
         type: 'checkbox',
         icon: this.getIcon('brightness-3-Template.png'),
         accelerator: this.getShortcutAccelerator('SET_OPACITY_3'),
@@ -187,7 +187,7 @@ class ShaderNativeTray {
       },
       {
         label: '25%',
-        click: () => this.setOpacity(0.25),
+        click: () => this.show(0.25),
         type: 'checkbox',
         icon: this.getIcon('brightness-2-Template.png'),
         accelerator: this.getShortcutAccelerator('SET_OPACITY_2'),
@@ -195,7 +195,7 @@ class ShaderNativeTray {
       },
       {
         label: '10%',
-        click: () => this.setOpacity(0.1),
+        click: () => this.show(0.1),
         type: 'checkbox',
         icon: this.getIcon('brightness-1-Template.png'),
         accelerator: this.getShortcutAccelerator('SET_OPACITY_1'),
